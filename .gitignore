@@ -1,0 +1,11 @@
+# Segredos e Configurações
+.env
+
+# Uploads de usuários
+/static/uploads
+
+# Python (Arquivos temporários e ambientes virtuais)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
