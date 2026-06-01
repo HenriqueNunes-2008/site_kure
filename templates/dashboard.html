@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Kure Recicla</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>:root { --primary: #3C1276; }
+      .modal { display: none; position: fixed; z-index: 100; backdrop-filter: blur(5px); }
+      </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-white shadow-sm p-6 mb-8">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <img src="{{ url_for('static', filename='Kure_Recicla.png') }}" class="h-10">
+                <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase">{{ status }}</span>
+            </div>
+            <a href="/logout" class="text-gray-500 hover:text-red-500">Sair do Painel</a>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6">
+        <!-- VISÃO ADMINISTRADOR -->
+        {% if status == 'admin' %}
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="bg-white p-8 rounded-2xl shadow-sm md:col-span-1">
+                <h2 class="text-2xl font-bold mb-6">Novo Produto</h2>
+                <form action="/admin/produto" method="POST" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Nome do Produto</label>
+                        <input type="text" name="nome" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Foto</label>
+                        <input type="file" name="imagem" class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Galeria (Até 10 fotos extras)</label>
+                        <input type="file" name="galeria" multiple class="w-full border p-2 rounded-lg text-xs">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Preço (R$)</label>
+                            <input type="number" step="0.01" name="preco" id="inputPreco" placeholder="0.00" class="w-full border p-2 rounded-lg" oninput="updatePreview()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Estoque</label>
+                            <input type="number" name="estoque" required class="w-full border p-2 rounded-lg">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Descrição</label>
+                        <textarea name="descricao" id="inputDesc" class="w-full border p-2 rounded-lg h-24" oninput="updatePreview()"></textarea>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" name="na_home" id="na_home">
+                        <label for="na_home" class="text-sm font-medium">Exibir na Home (Index)</label>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-700 text-white py-3 rounded-lg font-bold">Salvar Alterações</button>
+                </form>
+            </div>
+
+            <div class="md:col-span-2 space-y-6">
+                <div class="bg-white p-8 rounded-2xl shadow-sm">
+                    <h2 class="text-xl font-bold mb-4">Produtos Cadastrados</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="py-2">Produto</th>
+                                    <th class="py-2">Preço</th>
+                                    <th class="py-2">Estoque</th>
+                                    <th class="py-2 text-center">Na Home?</th>
+                                    <th class="py-2 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produto in produtos %}
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-3 flex items-center gap-2">
+                                        <img src="{{ url_for('static', filename=produto.imagem_url) }}" class="h-8 w-8 object-cover rounded">
+                                        {{ produto.nome }}
+                                    </td>
+                                    <td class="py-3">R$ {{ "%.2f"|format(produto.preco) }}</td>
+                                    <td class="py-3">{{ produto.estoque }}</td>
+                                    <td class="py-3 text-center">
+                                        {% if produto.na_home %}
+                                        <span class="text-green-500 font-bold">Sim</span>
+                                        {% else %}
+                                        <span class="text-gray-300">Não</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <div class="flex justify-end items-center gap-4">
+                                            <button 
+                                                onclick='openEditModal({{ {"id": produto.id|string, "nome": produto.nome, "preco": produto.preco|float, "estoque": produto.estoque, "descricao": produto.descricao, "na_home": produto.na_home, "galeria": produto.galeria} | tojson }})'
+                                                class="text-indigo-600 font-bold hover:underline">
+                                                Editar
+                                            </button>
+                                            <form action="/admin/produto/delete/{{ produto.id }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir o produto \'{{ produto.nome }}\'? Esta ação é irreversível.')">
+                                                <button type="submit" class="text-red-500 font-bold hover:text-red-700 hover:underline">
+                                                    Excluir
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONFIGURAÇÕES DE IMAGENS DA HOME -->
+        <div class="bg-white p-8 rounded-2xl shadow-sm mt-8 border-t-4 border-indigo-500">
+            <h2 class="text-2xl font-bold mb-6">Imagens Institucionais (Home)</h2>
+            <form action="/admin/configuracoes" method="POST" enctype="multipart/form-data" class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Foto Principal (Hero)</label>
+                    <input type="file" name="foto_hero" class="w-full border p-2 rounded-lg mb-2 text-xs">
+                    <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
+                        <img src="{{ url_for('static', filename=config.foto_hero) }}" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Foto Missão</label>
+                    <input type="file" name="foto_missao" class="w-full border p-2 rounded-lg mb-2 text-xs">
+                    <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
+                        <img src="{{ url_for('static', filename=config.foto_missao) }}" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Foto Ação Social</label>
+                    <input type="file" name="foto_acao_social" class="w-full border p-2 rounded-lg mb-2 text-xs">
+                    <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
+                        <img src="{{ url_for('static', filename=config.foto_acao_social) }}" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <div class="md:col-span-3">
+                    <button type="submit" class="bg-indigo-700 text-white px-8 py-3 rounded-lg font-bold hover:opacity-90 transition">
+                        Atualizar Imagens Institucionais
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- VISÃO COMPRADOR -->
+        {% elif status == 'comprador' %}
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-8 border-b">
+                <h2 class="text-2xl font-bold">Pedidos de Orçamento</h2>
+                <p class="text-gray-500">Abaixo estão os clientes aguardando contato.</p>
+            </div>
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="p-4 font-bold text-sm">Cliente</th>
+                        <th class="p-4 font-bold text-sm">Produto</th>
+                        <th class="p-4 font-bold text-sm">Contato</th>
+                        <th class="p-4 font-bold text-sm">Ação</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    {% for pedido in pedidos %}
+                    <tr>
+                        <td class="p-4">{{ pedido.cliente_nome }}</td>
+                        <td class="p-4">{{ pedido.quantidade }}x {{ pedido.produto_nome }}</td>
+                        <td class="p-4 text-primary">{{ pedido.cliente_telefone }}</td>
+                        <td class="p-4 flex items-center gap-2">
+                            <button onclick="openEncerrarModal('{{ pedido.id }}', '{{ pedido.cliente_nome }}', '{{ pedido.produto_nome }}')" class="bg-gray-200 text-gray-700 px-4 py-1 rounded-full text-sm font-bold hover:bg-gray-300 transition">
+                                Encerrar
+                            </button>
+                            <a href="https://wa.me/{{ pedido.cliente_telefone | replace('(', '') | replace(')', '') | replace('-', '') | replace(' ', '') }}" target="_blank" class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold">Chamar no WhatsApp</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- MODAL EDITAR PRODUTO -->
+    <div id="modalEditar" class="modal inset-0 bg-black/50 items-center justify-center p-6">
+        <div class="bg-white rounded-2xl p-8 max-w-xl w-full relative">
+            <button onclick="closeModal('modalEditar')" class="absolute top-4 right-4 text-gray-500">✕</button>
+            <h2 class="text-2xl font-bold mb-6">Editar Produto</h2>
+            <form id="editForm" method="POST" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Nome do Produto</label>
+                    <input type="text" name="nome" id="editNome" required class="w-full border p-2 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Alterar Foto (Opcional)</label>
+                    <input type="file" name="imagem" class="w-full border p-2 rounded-lg">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Substituir Galeria (Opcional)</label>
+                    <input type="file" name="galeria" multiple class="w-full border p-2 rounded-lg text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Preço (R$)</label>
+                        <input type="number" step="0.01" name="preco" id="editPreco" required class="w-full border p-2 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Estoque</label>
+                        <input type="number" name="estoque" id="editEstoque" required class="w-full border p-2 rounded-lg">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Descrição</label>
+                    <textarea name="descricao" id="editDesc" class="w-full border p-2 rounded-lg h-24"></textarea>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" name="na_home" id="editNaHome">
+                    <label for="editNaHome" class="text-sm font-medium">Exibir na Home (Index)</label>
+                </div>
+                <button type="submit" class="w-full bg-indigo-700 text-white py-3 rounded-lg font-bold">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ENCERRAR PEDIDO -->
+    <div id="modalEncerrar" class="modal inset-0 bg-black/50 items-center justify-center p-6" style="display: none;">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full relative text-center">
+            <button onclick="closeModal('modalEncerrar')" class="absolute top-4 right-4 text-gray-500">✕</button>
+            <div class="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">⚠️</div>
+            <h3 class="text-xl font-bold mb-2">Encerrar Pedido?</h3>
+            <p id="encerrarTexto" class="text-gray-600 mb-4"></p>
+            <p class="text-sm text-gray-500 mb-6">Esta ação removerá o pedido da sua lista de pendentes.</p>
+            <form id="formEncerrarPedido" method="POST" class="space-y-4">
+                <input type="hidden" name="pedido_id" id="encerrarPedidoId">
+                <button type="submit" class="w-full bg-red-500 text-white py-3 rounded-lg font-bold hover:bg-red-600 transition">
+                    Confirmar Encerramento
+                </button>
+                <button type="button" onclick="closeModal('modalEncerrar')" class="w-full text-gray-500 py-2">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function updatePreview() {
+            // Função de preview (opcional se quiser adicionar no modal de novo produto)
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function openEditModal(produto) {
+            const form = document.getElementById('editForm');
+            form.action = '/admin/produto/update/' + produto.id;
+            
+            document.getElementById('editNome').value = produto.nome;
+            document.getElementById('editPreco').value = produto.preco;
+            document.getElementById('editEstoque').value = produto.estoque;
+            document.getElementById('editDesc').value = produto.descricao;
+            document.getElementById('editNaHome').checked = produto.na_home;
+            
+            openModal('modalEditar');
+        }
+
+        function openEncerrarModal(pedidoId, clienteNome, produtoNome) {
+            document.getElementById('encerrarPedidoId').value = pedidoId;
+            document.getElementById('encerrarTexto').innerHTML = `Você está prestes a encerrar o pedido de <b>${clienteNome}</b> para o produto <b>${produtoNome}</b>.`;
+            document.getElementById('formEncerrarPedido').action = `/admin/pedido/encerrar/${pedidoId}`;
+            openModal('modalEncerrar');
+        }
+    </script>
+</body>
+</html>

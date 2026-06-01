@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kure Recicla | Sustentabilidade que Encanta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3C1276;
+            --secondary-black: #000000;
+            --secondary-white: #FFFFFF;
+            --secondary-gray: #657788;
+            --secondary-blue: #2E84B6;
+            --dark-blue: #002960;
+            --navy: #1A345B;
+            --yellow: #FFE02B;
+            --purple-alt: #9B3BA4;
+            --blue-alt: #145392;
+            --cyan: #4CBDE0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        .bg-primary { background-color: var(--primary); }
+        .text-primary { color: var(--primary); }
+        .border-primary { border-color: var(--primary); }
+        
+        .mission-card:hover .line-hover {
+            width: 100%;
+        }
+        
+        .line-hover {
+            width: 0;
+            height: 3px;
+            background-color: var(--cyan);
+            transition: width 0.3s ease;
+        }
+
+        .image-placeholder {
+            background-color: #f3f4f6;
+            border: 2px dashed #d1d5db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+        }
+
+        .typing-container::after {
+            content: '|';
+            animation: blink 0.7s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="bg-white text-gray-900">
+
+    <!-- TOPBAR -->
+    <nav class="fixed top-0 w-full bg-white shadow-md z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="static/Kure_Recicla.png" alt="Kure Recicla Logo" class="h-12">
+            </div>
+            
+            <div class="hidden md:flex space-x-8 font-semibold text-gray-700">
+                <a href="#inicio" class="hover:text-primary transition">Início</a>
+                <a href="#missao" class="hover:text-primary transition">Nossa missão</a>
+                <a href="#produtos" class="hover:text-primary transition">Produtos</a>
+                <a href="#acao-social" class="hover:text-primary transition">Ação Social</a>
+            </div>
+
+            <button onclick="openModal('loginModal')" class="bg-primary text-white px-6 py-2 rounded-full font-bold hover:opacity-90 transition">
+                Quero Comprar
+            </button>
+        </div>
+    </nav>
+
+    <!-- SEÇÃO INÍCIO (HERO) -->
+    <section id="inicio" class="pt-32 pb-20 bg-gray-100 px-6">
+        <div class="container mx-auto flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2">
+                <p class="text-blue-600 font-bold tracking-widest mb-4 uppercase">Fleximedical Kure × Kure Recicla</p>
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+                    Criamos <br>
+                    <span id="typing-text" class="text-primary typing-container"></span> <br>
+                    a Partir do Descarte
+                </h1>
+                <p class="text-gray-600 text-lg mb-8 max-w-lg">
+                    Transformamos resíduos de ACM e MDF da indústria médica em brinquedos artesanais únicos — carrinhos, Jenga, dominó e muito mais. Sustentabilidade que encanta.
+                </p>
+                <a href="#produtos" class="inline-block bg-primary text-white px-8 py-4 rounded-lg font-bold text-lg hover:shadow-xl transition">
+                    Ver coleção
+                </a>
+            </div>
+            <div class="md:w-1/2 mt-12 md:mt-0 w-full h-[400px] rounded-2xl overflow-hidden shadow-2xl group">
+                <img src="{{ url_for('static', filename=config.foto_hero) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO NOSSA MISSÃO -->
+    <section id="missao" class="py-20 px-6">
+        <div class="container mx-auto">
+            <div class="flex flex-col md:flex-row gap-12 items-center mb-20">
+                <div class="md:w-1/2">
+                    <h2 class="text-primary font-bold text-xl mb-2">Nossa Missão</h2>
+                    <h3 class="text-4xl font-bold mb-6 text-navy">Do Descarte Industrial ao Brinquedo dos Sonhos</h3>
+                    <p class="text-gray-600 leading-relaxed text-lg">
+                        Somos uma empresa do Grupo Fleximedical Kure. Utilizamos os resíduos de ACM e MDF do processo industrial para criar brinquedos artesanais de alta qualidade — carrinhos de madeira, Jenga, jogo da velha, dominó e casas de madeira.
+                    </p>
+                </div>
+                <div class="md:w-1/2 w-full h-80 rounded-xl overflow-hidden shadow-lg group">
+                    <img src="{{ url_for('static', filename=config.foto_missao) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="mission-card bg-white p-8 rounded-xl shadow-sm cursor-pointer">
+                    <span class="text-4xl font-bold text-cyan mb-4 block">01</span>
+                    <h4 class="text-xl font-bold mb-3">Origem Industrial</h4>
+                    <p class="text-gray-500">ACM e MDF descartados pela Fleximedical Kure — materiais que seriam perdidos, agora renascem.</p>
+                    <div class="line-hover mt-4"></div>
+                </div>
+                <div class="mission-card bg-white p-8 rounded-xl shadow-sm cursor-pointer">
+                    <span class="text-4xl font-bold text-purple-alt mb-4 block">02</span>
+                    <h4 class="text-xl font-bold mb-3">Transformação Artesanal</h4>
+                    <p class="text-gray-500">Cada peça é cortada, lixada e acabada à mão por artesãos dedicados à qualidade premium.</p>
+                    <div class="line-hover mt-4"></div>
+                </div>
+                <div class="mission-card bg-white p-8 rounded-xl shadow-sm cursor-pointer">
+                    <span class="text-4xl font-bold text-blue-alt mb-4 block">03</span>
+                    <h4 class="text-xl font-bold mb-3">Impacto Sustentável</h4>
+                    <p class="text-gray-500">Zero desperdício. Cada brinquedo criado é um passo real em direção a um mundo melhor.</p>
+                    <div class="line-hover mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO PRODUTOS -->
+    <section id="produtos" class="py-20 bg-gray-100 px-6">
+        <div class="container mx-auto text-center mb-16">
+            <p class="text-primary font-bold">Coleção 2026</p>
+            <h2 class="text-4xl font-bold mt-2">Brinquedos que Contam Histórias</h2>
+            <button onclick="openModal('loginModal')" class="mt-8 border-2 border-primary text-primary px-8 py-2 rounded-full font-bold hover:bg-primary hover:text-black transition">
+                Ver todos os produtos
+            </button>
+        </div>
+
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
+            {% for produto in produtos %}
+            <div class="group">
+                <div class="h-64 rounded-t-xl mb-4 overflow-hidden bg-gray-100">
+                    <img src="{{ url_for('static', filename=produto.imagem_url) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                </div>
+                <span class="text-xs font-bold bg-gray-100 px-2 py-1 rounded text-gray-600">Material Reciclado</span>
+                <h4 class="text-xl font-bold mt-2">{{ produto.nome }}</h4>
+                <p class="text-sm text-gray-500 mb-2 line-clamp-2">{{ produto.descricao }}</p>
+                <div class="flex justify-between items-center">
+                    <div class="flex flex-col items-start">
+                        <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">A partir de</span>
+                        <span class="text-2xl font-bold text-primary">R$ {{ "%.2f"|format(produto.preco) }}</span>
+                    </div>
+                    <span class="text-yellow-500 font-bold">★ 4.9</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- SEÇÃO AÇÃO SOCIAL -->
+    <section id="acao-social" class="py-20 px-6">
+        <div class="container mx-auto flex flex-col md:flex-row gap-16 items-center">
+            <div class="md:w-1/2">
+                <p class="text-primary font-bold uppercase tracking-widest mb-4">Ação Social</p>
+                <h2 class="text-5xl font-bold mb-8">Alegria Que Transforma Vidas</h2>
+                <p class="text-gray-700 text-lg mb-10">
+                    Nossa ação especial para o Dia das Crianças e o Natal — entregamos brinquedos artesanais para os filhos dos nossos fornecedores. Um presente com propósito, feito com as mãos e o coração.
+                </p>
+                
+                <div class="grid grid-cols-2 gap-6 mb-8">
+                    <div class="border-l-4 border-cyan pl-4">
+                        <h5 class="font-bold text-xl text-primary">Dia das Crianças</h5>
+                        <p class="text-gray-600">Outubro 2026</p>
+                    </div>
+                    <div class="border-l-4 border-purple-alt pl-4">
+                        <h5 class="font-bold text-xl text-primary">Natal</h5>
+                        <p class="text-gray-600">Dezembro 2026</p>
+                    </div>
+                </div>
+
+                <ul class="space-y-3 text-gray-700">
+                    <li class="flex items-center">✔
+                        Brinquedos 100% artesanais para os filhos
+                    </li>
+                    <li class="flex items-center">✔
+                        Ação social que fortalece o vínculo
+                    </li>
+                    <li class="flex items-center">✔
+                        Cada brinquedo acompanha uma carta
+                    </li>
+                    <li class="flex items-center">✔
+                        Embalagem premium personalizada
+                    </li>
+                </ul>
+            </div>
+            <div class="md:w-1/2 w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl group">
+                <img src="{{ url_for('static', filename=config.foto_acao_social) }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO CONTATO -->
+    <section id="contato" class="py-20 px-6 bg-gray-100">
+        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between">
+            <div class="md:w-1/2">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6">Pronto para Fazer Parte dessa Causa?</h2>
+                <p class="text-gray-600 text-lg mb-10">
+                    Preencha o formulário e nossa equipe entrará em contato para apresentar os produtos, preços e opções de personalização.
+                </p>
+
+                <div class="grid grid-cols-2 gap-8 mb-10">
+                    <div>
+                        <p class="font-bold text-primary">100% Seguro</p>
+                        <p class="text-sm text-gray-500">Produto certificado</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-primary">Resposta Rápida</p>
+                        <p class="text-sm text-gray-500">Em até 24h</p>
+                    </div>
+                    <div>
+                        <p class="font-bold text-primary">Suporte Total</p>
+                        <p class="text-sm text-gray-500">Estamos aqui</p>
+                    </div>
+                </div>
+            </div>
+            <div class="md:w-1/3 text-center">
+                <button onclick="openModal('loginModal')" class="bg-primary text-white w-full py-5 rounded-xl font-bold text-xl hover:scale-105 transition shadow-lg">
+                    Fazer Login
+                </button>
+                <p class="mt-4 text-gray-400">Área exclusiva para parceiros e clientes</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL DE LOGIN -->
+    <div id="loginModal" class="modal inset-0 bg-black/50 items-center justify-center p-6" style="display: none;">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full relative" onclick="event.stopPropagation()">
+            <button onclick="closeModal('loginModal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">✕</button>
+            <h3 class="text-2xl font-bold mb-6 text-center">Entrar na Kure Recicla</h3>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">E-mail</label>
+                    <input type="email" id="loginEmail" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Senha</label>
+                    <input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                </div>
+                <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-bold hover:opacity-90 transition">Entrar</button>
+            </form>
+            <p class="mt-6 text-center text-gray-600">
+                É novo por aqui? <a href="cadastro.html" class="text-primary font-bold hover:underline">Cadastre-se</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- MENSAGEM FLASH -->
+    <div id="flashMessage" class="fixed bottom-10 left-1/2 -translate-x-1/2 hidden bg-gray-900 text-white px-8 py-4 rounded-xl shadow-2xl z-[200]">
+        <span id="flashText"></span>
+    </div>
+
+    <!-- RODAPÉ -->
+    <footer class="bg-gray-00 pt-16 pb-8 border-t border-purple-800 px-6">
+        <div class="container mx-auto grid md:grid-cols-3 gap-12 mb-12">
+            <div>
+                <img src="static/Kure_Recicla.png" alt="Kure Recicla" class="h-12 mb-8">
+                <p class="text-gray-400 max-w-xs">
+                    Transformando resíduos industriais em brinquedos que encantam crianças e respeitam o planeta.
+                </p>
+            </div>
+            <div class="flex flex-col items-center">
+                <p class="text-sm font-bold text-gray-500 mb-4 uppercase tracking-widest">Uma empresa do Grupo</p>
+                <img src="static/LogoFlexColor2.png" alt="Flex Color Logo" class="h-20">
+            </div>
+            <div class="md:text-right">
+                <p class="font-bold text-gray mb-2">Fale Conosco</p>
+                <a href="mailto:contato@kurerecicla.com.br" class="text-indigo-800 hover:text-black transition underline">contato@kurerecicla.com.br</a>
+            </div>
+        </div>
+        <div class="text-center pt-8 border-t border-purple-800">
+            <p class="text-gray-500 text-sm">© 2026 Kure Recicla — Todos os direitos reservados</p>
+        </div>
+    </footer>
+
+    <script>
+        // Lógica do efeito de digitação
+        const words = ["Futuros", "Histórias", "Sorrisos"];
+        let wordIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        const typingText = document.getElementById('typing-text');
+
+        function type() {
+            const currentWord = words[wordIndex];
+            
+            if (isDeleting) {
+                typingText.textContent = currentWord.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingText.textContent = currentWord.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let typeSpeed = isDeleting ? 100 : 200;
+
+            if (!isDeleting && charIndex === currentWord.length) {
+                typeSpeed = 2000; // Pausa no final da palavra
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                wordIndex = (wordIndex + 1) % words.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+
+        // Lógica de Modais
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function showFlash(message, isError = false) {
+            const flash = document.getElementById('flashMessage');
+            const text = document.getElementById('flashText');
+            text.textContent = message;
+            flash.classList.remove('hidden', 'bg-red-500', 'bg-gray-900');
+            flash.classList.add(isError ? 'bg-red-500' : 'bg-gray-900');
+            setTimeout(() => flash.classList.add('hidden'), 3000);
+        }
+
+        // Submit do Login
+        document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const senha = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email, senha})
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    window.location.href = data.status === 'usuario' ? '/produtos.html' : '/dashboard.html';
+                } else {
+                    showFlash(data.error || 'Erro ao entrar', true);
+                }
+            } catch (err) {
+                showFlash('Erro de conexão', true);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', type);
+    </script>
+</body>
+</html>

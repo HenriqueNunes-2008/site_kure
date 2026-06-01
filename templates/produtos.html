@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos | Kure Recicla</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --primary: #3C1276; }
+        .bg-primary { background-color: var(--primary) !important; }
+        .text-primary { color: var(--primary) !important; }
+        .modal { display: none; position: fixed; z-index: 100; backdrop-filter: blur(5px); }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-sm p-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <img src="{{ url_for('static', filename='Kure_Recicla.png') }}" class="h-10">
+            <div class="flex items-center gap-4">
+                <span class="text-gray-600">Olá, <strong>{{ session.nome }}</strong></span>
+                <a href="/logout" class="text-red-500 hover:underline">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto py-12 px-6">
+        <h1 class="text-3xl font-bold mb-8">Nossa Coleção Completa</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="lista-produtos">
+                   {% for produto in produtos %}
+            <div class="bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md transition cursor-pointer" 
+                 onclick='openDetails({{ {"id": produto.id|string, "nome": produto.nome, "descricao": produto.descricao, "preco": produto.preco|float, "estoque": produto.estoque, "imagem_url": url_for("static", filename=produto.imagem_url), "galeria": produto.galeria} | tojson }})'>
+                <div class="h-48 bg-gray-100 rounded-xl mb-4 overflow-hidden flex items-center justify-center">
+                    <img src="{{ url_for('static', filename=produto.imagem_url) }}" class="w-full h-full object-cover">
+                </div>
+                <h3 class="font-bold text-lg">{{ produto.nome }}</h3>
+                <p class="text-primary font-bold">R$ {{ "%.2f"|format(produto.preco) }}</p>
+                <button class="w-full mt-4 bg-primary text-white py-2 rounded-lg font-bold">Comprar</button>
+            </div>
+                   {% endfor %}
+        </div>
+    </main>
+
+    <!-- MODAL DETALHES -->
+    <div id="modalDetalhes" class="modal inset-0 bg-black/50 items-center justify-center p-6" style="display: none;">
+        <div class="bg-white rounded-2xl p-8 max-w-2xl w-full relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modalDetalhes')" class="absolute top-4 right-4 text-gray-500">✕</button>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-4">
+                    <div class="h-64 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
+                        <img id="detalheImagem" src="" class="w-full h-full object-cover">
+                    </div>
+                    <button id="btnGaleria" onclick="openGallery()" class="w-full py-4 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 transition">
+                        <span class="text-2xl">🖼️</span>
+                        <span class="text-xs font-bold uppercase tracking-wider">Ver Galeria de Fotos</span>
+                        <span id="galeriaCount" class="text-[10px]"></span>
+                    </button>
+                </div>
+                <div>
+                    <h2 id="detalheNome" class="text-2xl font-bold mb-2"></h2>
+                    <p id="detalheDesc" class="text-gray-600 mb-4"></p>
+                    <p class="text-sm text-gray-500 mb-4">Estoque disponível: <span id="detalheEstoque" class="font-bold"></span> unidades</p>
+                    <div class="text-3xl font-bold text-primary mb-6" id="detalhePreco"></div>
+                    
+                    <div class="flex items-center gap-4 mb-6">
+                        <label>Quantidade:</label>
+                        <input type="number" id="compraQtd" value="1" min="1" class="w-20 border rounded-lg p-2">
+                    </div>
+                    
+                    <button onclick="confirmarCompra()" class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg">Comprar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GALERIA (POP-UP) -->
+    <div id="modalGaleria" class="modal inset-0 bg-black/90 items-center justify-center p-6" style="display: none; z-index: 200;">
+        <button onclick="closeModal('modalGaleria')" class="absolute top-10 right-10 text-white text-4xl">✕</button>
+        <div class="max-w-4xl w-full">
+            <div id="galeriaContainer" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[80vh] overflow-y-auto p-4">
+                <!-- Fotos inseridas via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMAÇÃO -->
+    <div id="modalConfirma" class="modal inset-0 bg-black/50 items-center justify-center p-6" style="display: none;">
+        <div class="bg-white rounded-2xl p-8 max-w-sm w-full text-center">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">✓</div>
+            <h3 class="text-xl font-bold mb-2">Resumo do Pedido</h3>
+            <p id="resumoTexto" class="text-gray-600 mb-4"></p>
+            <p class="text-sm text-indigo-600 bg-indigo-50 p-3 rounded-lg mb-6">Seu pedido será enviado para análise e o nosso colaborador vai entrar em contato para negociar os valores.</p>
+            <button onclick="finalizar()" class="w-full bg-primary text-white py-3 rounded-lg font-bold mb-2">Confirmar</button>
+            <button onclick="closeModal('modalConfirma')" class="w-full text-gray-500 py-2">Cancelar</button>
+        </div>
+    </div>
+
+    <!-- MENSAGEM FLASH -->
+    <div id="flashMessage" class="fixed bottom-10 left-1/2 -translate-x-1/2 hidden bg-gray-900 text-white px-8 py-4 rounded-xl shadow-2xl z-[200]" style="display: none;">
+        Pedido realizado com sucesso!
+    </div>
+
+    <script>
+        let produtoAtual = {};
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function openDetails(p) {
+            produtoAtual = p;
+            document.getElementById('detalheNome').textContent = p.nome;
+            document.getElementById('detalheDesc').textContent = p.descricao;
+            document.getElementById('detalhePreco').textContent = `R$ ${p.preco.toFixed(2)}`;
+            document.getElementById('detalheEstoque').textContent = p.estoque;
+            document.getElementById('detalheImagem').src = p.imagem_url;
+            
+            const btnGaleria = document.getElementById('btnGaleria');
+            const count = p.galeria ? p.galeria.length : 0;
+            document.getElementById('galeriaCount').textContent = count > 0 ? `${count} fotos adicionais` : 'Nenhuma foto extra';
+            btnGaleria.style.opacity = count > 0 ? '1' : '0.5';
+            btnGaleria.disabled = count === 0;
+
+            const inputQtd = document.getElementById('compraQtd');
+            inputQtd.max = p.estoque;
+            inputQtd.value = 1;
+            openModal('modalDetalhes');
+        }
+
+        function openGallery() {
+            const container = document.getElementById('galeriaContainer');
+            container.innerHTML = '';
+            if (produtoAtual.galeria) {
+                produtoAtual.galeria.forEach(img => {
+                    const div = document.createElement('div');
+                    div.className = "h-64 bg-gray-800 rounded-lg overflow-hidden";
+                    div.innerHTML = `<img src="/static/${img}" class="w-full h-full object-contain">`;
+                    container.appendChild(div);
+                });
+                openModal('modalGaleria');
+            }
+        }
+
+        // Garante que o usuário não digite manualmente um valor acima do estoque
+        document.getElementById('compraQtd').addEventListener('input', function() {
+            if (parseInt(this.value) > produtoAtual.estoque) {
+                this.value = produtoAtual.estoque;
+            }
+        });
+
+        function confirmarCompra() {
+            const qtd = document.getElementById('compraQtd').value;
+            const total = (produtoAtual.preco * qtd).toFixed(2);
+            document.getElementById('resumoTexto').innerHTML = `${qtd}x ${produtoAtual.nome}<br><b>Valor estimado: R$ ${total}</b>`;
+            closeModal('modalDetalhes');
+            openModal('modalConfirma');
+        }
+
+        async function finalizar() {
+            const qtd = document.getElementById('compraQtd').value;
+            try {
+                const response = await fetch('/fazer_pedido', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        produto_id: produtoAtual.id,
+                        quantidade: qtd
+                    })
+                });
+                if (response.ok) {
+                    closeModal('modalConfirma');
+                    const flash = document.getElementById('flashMessage');
+                    flash.style.display = 'block';
+                    setTimeout(() => flash.style.display = 'none', 3000);
+                }
+            } catch (err) {
+                alert("Erro ao enviar pedido.");
+            }
+        }
+    </script>
+</body>
+</html>
