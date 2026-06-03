@@ -5,6 +5,8 @@ from flask_bcrypt import Bcrypt
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
+import cloudinary
+import cloudinary.uploader
 
 # Carrega as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -12,6 +14,9 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('app.secret_key')
 bcrypt = Bcrypt(app)
+
+# Configuração Cloudinary
+cloudinary.config(secure=True)
 
 # Configuração de Upload
 UPLOAD_FOLDER = 'static/uploads'
@@ -216,9 +221,8 @@ def add_produto():
     file = request.files.get('imagem')
     filename = None
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        imagem_url = f"uploads/{filename}"
+        upload_result = cloudinary.uploader.upload(file, folder="produtos")
+        imagem_url = upload_result['secure_url']
     else:
         imagem_url = "placeholder.jpg"
 
@@ -235,10 +239,9 @@ def add_produto():
             galeria_files = request.files.getlist('galeria')
             for f in galeria_files[:10]:
                 if f and allowed_file(f.filename):
-                    f_name = secure_filename(f.filename)
-                    f.save(os.path.join(app.config['UPLOAD_FOLDER'], f_name))
+                    f_upload = cloudinary.uploader.upload(f, folder="galeria")
                     cur.execute("INSERT INTO produto_imagens (produto_id, imagem_url) VALUES (%s, %s)", 
-                                (produto_id, f"uploads/{f_name}"))
+                                (produto_id, f_upload['secure_url']))
             
             conn.commit()
         return redirect(url_for('dashboard_page'))
@@ -269,15 +272,13 @@ def update_produto(id):
                 cur.execute("DELETE FROM produto_imagens WHERE produto_id = %s", (id,))
                 for f in galeria_files[:10]:
                     if f and allowed_file(f.filename):
-                        f_name = secure_filename(f.filename)
-                        f.save(os.path.join(app.config['UPLOAD_FOLDER'], f_name))
+                        f_upload = cloudinary.uploader.upload(f, folder="galeria")
                         cur.execute("INSERT INTO produto_imagens (produto_id, imagem_url) VALUES (%s, %s)", 
-                                    (id, f"uploads/{f_name}"))
+                                    (id, f_upload['secure_url']))
 
             if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                imagem_url = f"uploads/{filename}"
+                upload_result = cloudinary.uploader.upload(file, folder="produtos")
+                imagem_url = upload_result['secure_url']
                 cur.execute(
                     """UPDATE produtos 
                        SET nome=%s, descricao=%s, preco=%s, estoque=%s, imagem_url=%s, na_home=%s 
@@ -345,9 +346,8 @@ def update_configs():
             for key in ['foto_hero', 'foto_missao', 'foto_acao_social']:
                 file = request.files.get(key)
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                    imagem_url = f"uploads/{filename}"
+                    upload_result = cloudinary.uploader.upload(file, folder="institucional")
+                    imagem_url = upload_result['secure_url']
                     cur.execute("UPDATE configuracoes SET valor = %s WHERE chave = %s", (imagem_url, key))
             conn.commit()
         return redirect(url_for('dashboard_page'))

@@ -29,9 +29,9 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="lista-produtos">
                    {% for produto in produtos %}
             <div class="bg-white p-4 rounded-2xl shadow-sm border hover:shadow-md transition cursor-pointer" 
-                 onclick='openDetails({{ {"id": produto.id|string, "nome": produto.nome, "descricao": produto.descricao, "preco": produto.preco|float, "estoque": produto.estoque, "imagem_url": url_for("static", filename=produto.imagem_url), "galeria": produto.galeria} | tojson }})'>
+                 onclick='openDetails({{ {"id": produto.id|string, "nome": produto.nome, "descricao": produto.descricao, "preco": produto.preco|float, "estoque": produto.estoque, "imagem_url": produto.imagem_url, "galeria": produto.galeria} | tojson }})'>
                 <div class="h-48 bg-gray-100 rounded-xl mb-4 overflow-hidden flex items-center justify-center">
-                    <img src="{{ url_for('static', filename=produto.imagem_url) }}" class="w-full h-full object-cover">
+                    <img src="{{ produto.imagem_url if produto.imagem_url.startswith('http') else url_for('static', filename=produto.imagem_url) }}" class="w-full h-full object-cover">
                 </div>
                 <h3 class="font-bold text-lg">{{ produto.nome }}</h3>
                 <p class="text-primary font-bold">R$ {{ "%.2f"|format(produto.preco) }}</p>
@@ -112,7 +112,8 @@
             document.getElementById('detalheDesc').textContent = p.descricao;
             document.getElementById('detalhePreco').textContent = `R$ ${p.preco.toFixed(2)}`;
             document.getElementById('detalheEstoque').textContent = p.estoque;
-            document.getElementById('detalheImagem').src = p.imagem_url;
+            const imgSrc = p.imagem_url.startsWith('http') ? p.imagem_url : `/static/${p.imagem_url}`;
+            document.getElementById('detalheImagem').src = imgSrc;
             
             const btnGaleria = document.getElementById('btnGaleria');
             const count = p.galeria ? p.galeria.length : 0;
@@ -130,10 +131,11 @@
             const container = document.getElementById('galeriaContainer');
             container.innerHTML = '';
             if (produtoAtual.galeria) {
-                produtoAtual.galeria.forEach(img => {
+                produtoAtual.galeria.forEach(img => { // AQUI: A URL da galeria já virá completa do Cloudinary
                     const div = document.createElement('div');
                     div.className = "h-64 bg-gray-800 rounded-lg overflow-hidden";
-                    div.innerHTML = `<img src="/static/${img}" class="w-full h-full object-contain">`;
+                    const imgSrc = img.startsWith('http') ? img : `/static/${img}`;
+                    div.innerHTML = `<img src="${imgSrc}" class="w-full h-full object-contain">`;
                     container.appendChild(div);
                 });
                 openModal('modalGaleria');

@@ -4,3 +4,4 @@ python-dotenv
 flask-bcrypt
 gunicorn
 Werkzeug
+cloudinary
