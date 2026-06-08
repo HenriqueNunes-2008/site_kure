@@ -15,16 +15,58 @@
             <div class="flex items-center gap-4">
                 <img src="{{ url_for('static', filename='Kure_Recicla.png') }}" class="h-10">
                 <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase">{{ status }}</span>
+                <button onclick="toggleSidebar()" class="p-2 hover:bg-gray-100 rounded-lg text-primary focus:outline-none" title="Menu do Sistema">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
             </div>
             <a href="/logout" class="text-gray-500 hover:text-red-500">Sair do Painel</a>
         </div>
     </nav>
 
+    <!-- ABA LATERAL (SIDEBAR) -->
+    <div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 hidden z-[140]"></div>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 z-[150] overflow-y-auto">
+        <div class="p-8">
+            <div class="flex justify-between items-center mb-10 border-b pb-4">
+                <h2 class="text-2xl font-bold text-primary">Navegação</h2>
+                <button onclick="toggleSidebar()" class="text-gray-400 hover:text-red-500 transition text-2xl">✕</button>
+            </div>
+            
+            <nav class="space-y-8">
+                {% if status == 'admin' %}
+                <div class="space-y-3">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Produtos</h3>
+                    <div class="flex flex-col gap-1">
+                        <a href="#section-novo-produto" onclick="toggleSidebar()" class="text-gray-600 hover:text-primary font-medium p-2 hover:bg-gray-50 rounded-lg transition">Cadastrar Novo Produto</a>
+                        <a href="#section-produtos-lista" onclick="toggleSidebar()" class="text-gray-600 hover:text-primary font-medium p-2 hover:bg-gray-50 rounded-lg transition">Produtos Cadastrados</a>
+                    </div>
+                </div>
+                
+                <div class="space-y-3">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Imagens</h3>
+                    <div class="flex flex-col gap-1">
+                        <a href="#section-imagens" onclick="toggleSidebar()" class="text-gray-600 hover:text-primary font-medium p-2 hover:bg-gray-50 rounded-lg transition">Imagens Institucionais (Home)</a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest">Pedidos</h3>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-gray-300 font-medium p-2 italic cursor-not-allowed">Ainda sem funcionalidade</span>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </aside>
+
     <main class="container mx-auto px-6">
         <!-- VISÃO ADMINISTRADOR -->
         {% if status == 'admin' %}
         <div class="grid md:grid-cols-3 gap-8">
-            <div class="bg-white p-8 rounded-2xl shadow-sm md:col-span-1">
+            <div id="section-novo-produto" class="bg-white p-8 rounded-2xl shadow-sm md:col-span-1 scroll-mt-24">
                 <h2 class="text-2xl font-bold mb-6">Novo Produto</h2>
                 <form action="/admin/produto" method="POST" enctype="multipart/form-data" class="space-y-4">
                     <div>
@@ -61,7 +103,7 @@
                 </form>
             </div>
 
-            <div class="md:col-span-2 space-y-6">
+            <div id="section-produtos-lista" class="md:col-span-2 space-y-6 scroll-mt-24">
                 <div class="bg-white p-8 rounded-2xl shadow-sm">
                     <h2 class="text-xl font-bold mb-4">Produtos Cadastrados</h2>
                     <div class="overflow-x-auto">
@@ -117,7 +159,7 @@
         </div>
 
         <!-- CONFIGURAÇÕES DE IMAGENS DA HOME -->
-        <div class="bg-white p-8 rounded-2xl shadow-sm mt-8 border-t-4 border-indigo-500">
+        <div id="section-imagens" class="bg-white p-8 rounded-2xl shadow-sm mt-8 border-t-4 border-indigo-500 scroll-mt-24">
             <h2 class="text-2xl font-bold mb-6">Imagens Institucionais (Home)</h2>
             <form action="/admin/configuracoes" method="POST" enctype="multipart/form-data" class="grid md:grid-cols-3 gap-8">
                 <div>
@@ -251,6 +293,16 @@
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isOpen = sidebar.classList.contains('translate-x-0');
+            
+            sidebar.classList.toggle('-translate-x-full', isOpen);
+            sidebar.classList.toggle('translate-x-0', !isOpen);
+            overlay.classList.toggle('hidden', isOpen);
+        }
 
         function openEditModal(produto) {
             const form = document.getElementById('editForm');
