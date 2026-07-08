@@ -32,18 +32,32 @@
                 <input type="tel" id="telefone" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3C1276] outline-none">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700">Criar Senha</label>
-                <input type="password" id="senha" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3C1276] outline-none">
+                <div class="flex items-center justify-between gap-4">
+                    <label class="block text-sm font-medium text-gray-700">Criar Senha</label>
+                    <button type="button" id="toggleRegisterPassword" class="text-sm font-bold text-[#3C1276] hover:underline" aria-label="Mostrar/ocultar senha">👁️</button>
+                </div>
+                <input type="password" id="senha" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#3C1276] outline-none mt-2">
             </div>
             <button type="submit" class="w-full bg-[#3C1276] text-white py-3 rounded-lg font-bold hover:opacity-90 transition">Cadastrar</button>
         </form>
         
-        <p class="mt-6 text-center text-gray-600">
-            Já tem uma conta? <a href="index.html" class="text-[#3C1276] font-bold hover:underline">Faça login</a>
+<p class="mt-6 text-center text-gray-600">
+            Já tem uma conta? <a href="/" class="text-[#3C1276] font-bold hover:underline">Faça login</a>
         </p>
     </div>
 
     <script>
+        // Toggle de visibilidade da senha (Cadastro)
+        const toggleRegisterBtn = document.getElementById('toggleRegisterPassword');
+        const registerPasswordInput = document.getElementById('senha');
+        if (toggleRegisterBtn && registerPasswordInput) {
+            toggleRegisterBtn.addEventListener('click', () => {
+                const isPassword = registerPasswordInput.type === 'password';
+                registerPasswordInput.type = isPassword ? 'text' : 'password';
+                toggleRegisterBtn.textContent = isPassword ? '🙈' : '👁️';
+            });
+        }
+
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = {

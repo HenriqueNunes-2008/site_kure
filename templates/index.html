@@ -269,10 +269,14 @@
                     <input type="email" id="loginEmail" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Senha</label>
-                    <input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none">
+                    <div class="flex items-center justify-between gap-4">
+                        <label class="block text-sm font-medium text-gray-700">Senha</label>
+                        <button type="button" id="toggleLoginPassword" class="text-sm font-bold text-primary hover:underline" aria-label="Mostrar/ocultar senha">👁️</button>
+                    </div>
+                    <input type="password" id="loginPassword" required class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none mt-2">
                 </div>
                 <button type="submit" class="w-full bg-primary text-white py-3 rounded-lg font-bold hover:opacity-90 transition">Entrar</button>
+
             </form>
             <p class="mt-6 text-center text-gray-600">
                 É novo por aqui? <a href="cadastro.html" class="text-primary font-bold hover:underline">Cadastre-se</a>
@@ -354,8 +358,20 @@
             setTimeout(() => flash.classList.add('hidden'), 3000);
         }
 
+        // Toggle de visibilidade da senha (Login)
+        const toggleLoginBtn = document.getElementById('toggleLoginPassword');
+        const loginPasswordInput = document.getElementById('loginPassword');
+        if (toggleLoginBtn && loginPasswordInput) {
+            toggleLoginBtn.addEventListener('click', () => {
+                const isPassword = loginPasswordInput.type === 'password';
+                loginPasswordInput.type = isPassword ? 'text' : 'password';
+                toggleLoginBtn.textContent = isPassword ? '🙈' : '👁️';
+            });
+        }
+
         // Submit do Login
         document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const senha = document.getElementById('loginPassword').value;

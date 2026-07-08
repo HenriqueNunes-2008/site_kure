@@ -110,7 +110,7 @@ def dashboard_page():
                 # Busca pedidos reais cruzando com usuários e produtos
                 cur.execute("""
                     SELECT p.id, u.nome as cliente_nome, u.telefone as cliente_telefone, p.status,
-                           pr.nome as produto_nome, p.quantidade, p.criado_em
+                           pr.nome as produto_nome, pr.preco as produto_preco, p.quantidade, p.criado_em
                     FROM pedidos p
                     JOIN usuarios u ON p.usuario_id = u.id
                     JOIN produtos pr ON p.produto_id = pr.id

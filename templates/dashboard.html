@@ -65,8 +65,8 @@
     <main class="container mx-auto px-6">
         <!-- VISÃO ADMINISTRADOR -->
         {% if status == 'admin' %}
-        <div class="grid md:grid-cols-3 gap-8">
-            <div id="section-novo-produto" class="bg-white p-8 rounded-2xl shadow-sm md:col-span-1 scroll-mt-24">
+        <div class="space-y-8">
+            <div id="section-novo-produto" class="bg-white p-8 rounded-2xl shadow-sm scroll-mt-24">
                 <h2 class="text-2xl font-bold mb-6">Novo Produto</h2>
                 <form action="/admin/produto" method="POST" enctype="multipart/form-data" class="space-y-4">
                     <div>
@@ -103,92 +103,103 @@
                 </form>
             </div>
 
-            <div id="section-produtos-lista" class="md:col-span-2 space-y-6 scroll-mt-24">
+            <div id="section-produtos-lista" class="space-y-6 scroll-mt-24">
                 <div class="bg-white p-8 rounded-2xl shadow-sm">
                     <h2 class="text-xl font-bold mb-4">Produtos Cadastrados</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b">
-                                    <th class="py-2">Produto</th>
-                                    <th class="py-2">Preço</th>
-                                    <th class="py-2">Estoque</th>
-                                    <th class="py-2 text-center whitespace-nowrap">Na Home?</th>
-                                    <th class="py-2 text-right">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for produto in produtos %}
-                                <tr class="border-b hover:bg-gray-50">
-                                    <td class="py-3">
-                                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2">
-                                            <img src="{{ produto.imagem_url if produto.imagem_url.startswith('http') else url_for('static', filename=produto.imagem_url) }}" class="h-8 w-8 object-cover rounded">
-                                            <span class="font-medium">{{ produto.nome }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="py-3">R$ {{ "%.2f"|format(produto.preco) }}</td>
-                                    <td class="py-3">{{ produto.estoque }} unid.</td>
-                                    <td class="py-3 text-center">
-                                        {% if produto.na_home %}
-                                        <span class="text-green-500 font-bold">Sim</span>
-                                        {% else %}
-                                        <span class="text-gray-300">Não</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="py-3 text-right">
-                                        <div class="flex justify-end items-center gap-4">
-                                            <button 
-                                                onclick='openEditModal({{ {"id": produto.id|string, "nome": produto.nome, "preco": produto.preco|float, "estoque": produto.estoque, "descricao": produto.descricao, "na_home": produto.na_home, "galeria": produto.galeria} | tojson }})'
-                                                class="text-indigo-600 font-bold hover:underline">
-                                                Editar
-                                            </button>
-                                            <form action="/admin/produto/delete/{{ produto.id }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir o produto \'{{ produto.nome }}\'? Esta ação é irreversível.')">
-                                                <button type="submit" class="text-red-500 font-bold hover:text-red-700 hover:underline">
-                                                    Excluir
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    
+                    <div class="space-y-4">
+                        <label class="block text-sm font-medium text-gray-700">Selecione um produto para gerenciar:</label>
+                        <select id="productSelector" onchange="updateProductView()" class="w-full border p-3 rounded-xl bg-gray-50 focus:ring-2 focus:ring-primary outline-none transition-all">
+                            <option value="">-- Escolha um produto --</option>
+                            {% for produto in produtos %}
+                            <option value="{{ produto.id }}">{{ produto.nome }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <div id="productDetailCard" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                            {% for produto in produtos %}
+                            <div id="details-{{ produto.id }}" class="product-info-block hidden bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-6">
+                                <div class="flex items-center gap-4">
+                                    <img src="{{ produto.imagem_url if produto.imagem_url.startswith('http') else url_for('static', filename=produto.imagem_url) }}" class="h-20 w-20 object-cover rounded-xl shadow-sm">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-800">{{ produto.nome }}</h3>
+                                        <p class="text-sm text-gray-500 line-clamp-1">{{ produto.descricao }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-50">
+                                        <p class="text-[10px] font-bold text-gray-400 uppercase">Preço</p>
+                                        <p class="font-bold text-primary">R$ {{ "%.2f"|format(produto.preco) }}</p>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-50">
+                                        <p class="text-[10px] font-bold text-gray-400 uppercase">Estoque</p>
+                                        <p class="font-bold">{{ produto.estoque }} unid.</p>
+                                    </div>
+                                    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-50">
+                                        <p class="text-[10px] font-bold text-gray-400 uppercase">Na Home?</p>
+                                        <p class="font-bold {{ 'text-green-500' if produto.na_home else 'text-gray-300' }}">
+                                            {{ 'Sim' if produto.na_home else 'Não' }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t">
+                                    <button onclick='openEditModal({{ {"id": produto.id|string, "nome": produto.nome, "preco": produto.preco|float, "estoque": produto.estoque, "descricao": produto.descricao, "na_home": produto.na_home, "galeria": produto.galeria} | tojson }})'
+                                        class="flex-1 bg-indigo-50 text-indigo-700 font-bold py-3 rounded-xl hover:bg-indigo-100 transition flex items-center justify-center gap-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        Editar Informações
+                                    </button>
+                                    <form action="/admin/produto/delete/{{ produto.id }}" method="POST" onsubmit="return confirm('Excluir este produto?')">
+                                        <button type="submit" class="w-full sm:w-auto bg-red-50 text-red-600 font-bold py-3 px-6 rounded-xl hover:bg-red-100 transition flex items-center justify-center gap-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            Excluir
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        {% if not produtos %}
+                        <p class="text-center text-gray-400 py-8 italic">Nenhum produto cadastrado até o momento.</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- CONFIGURAÇÕES DE IMAGENS DA HOME -->
-        <div id="section-imagens" class="bg-white p-8 rounded-2xl shadow-sm mt-8 border-t-4 border-indigo-500 scroll-mt-24">
-            <h2 class="text-2xl font-bold mb-6">Imagens Institucionais (Home)</h2>
-            <form action="/admin/configuracoes" method="POST" enctype="multipart/form-data" class="grid md:grid-cols-3 gap-8">
-                <div>
-                    <label class="block text-sm font-medium mb-1">Foto Principal (Hero)</label>
-                    <input type="file" name="foto_hero" class="w-full border p-2 rounded-lg mb-2 text-xs">
-                    <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
-                        <img src="{{ config.foto_hero if config.foto_hero.startswith('http') else url_for('static', filename=config.foto_hero) }}" class="w-full h-full object-cover">
+            <!-- CONFIGURAÇÕES DE IMAGENS DA HOME -->
+            <div id="section-imagens" class="bg-white p-8 rounded-2xl shadow-sm border-t-4 border-indigo-500 scroll-mt-24">
+                <h2 class="text-2xl font-bold mb-6">Imagens Institucionais (Home)</h2>
+                <form action="/admin/configuracoes" method="POST" enctype="multipart/form-data" class="grid md:grid-cols-3 gap-8">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Foto Principal (Hero)</label>
+                        <input type="file" name="foto_hero" class="w-full border p-2 rounded-lg mb-2 text-xs">
+                        <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
+                            <img src="{{ config.foto_hero if config.foto_hero.startswith('http') else url_for('static', filename=config.foto_hero) }}" class="w-full h-full object-cover">
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Foto Missão</label>
-                    <input type="file" name="foto_missao" class="w-full border p-2 rounded-lg mb-2 text-xs">
-                    <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
-                        <img src="{{ config.foto_missao if config.foto_missao.startswith('http') else url_for('static', filename=config.foto_missao) }}" class="w-full h-full object-cover">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Foto Missão</label>
+                        <input type="file" name="foto_missao" class="w-full border p-2 rounded-lg mb-2 text-xs">
+                        <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
+                            <img src="{{ config.foto_missao if config.foto_missao.startswith('http') else url_for('static', filename=config.foto_missao) }}" class="w-full h-full object-cover">
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">Foto Ação Social</label>
-                    <input type="file" name="foto_acao_social" class="w-full border p-2 rounded-lg mb-2 text-xs">
-                    <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
-                        <img src="{{ config.foto_acao_social if config.foto_acao_social.startswith('http') else url_for('static', filename=config.foto_acao_social) }}" class="w-full h-full object-cover">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Foto Ação Social</label>
+                        <input type="file" name="foto_acao_social" class="w-full border p-2 rounded-lg mb-2 text-xs">
+                        <div class="h-32 bg-gray-50 rounded-lg overflow-hidden border">
+                            <img src="{{ config.foto_acao_social if config.foto_acao_social.startswith('http') else url_for('static', filename=config.foto_acao_social) }}" class="w-full h-full object-cover">
+                        </div>
                     </div>
-                </div>
-                <div class="md:col-span-3">
-                    <button type="submit" class="bg-indigo-700 text-white px-8 py-3 rounded-lg font-bold hover:opacity-90 transition">
-                        Atualizar Imagens Institucionais
-                    </button>
-                </div>
-            </form>
+                    <div class="md:col-span-3">
+                        <button type="submit" class="bg-indigo-700 text-white px-8 py-3 rounded-lg font-bold hover:opacity-90 transition">
+                            Atualizar Imagens Institucionais
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- VISÃO COMPRADOR -->
@@ -203,6 +214,7 @@
                     <tr>
                         <th class="p-4 font-bold text-sm">Cliente</th>
                         <th class="p-4 font-bold text-sm">Produto</th>
+                        <th class="p-4 font-bold text-sm">Valor Estimado</th>
                         <th class="p-4 font-bold text-sm">Contato</th>
                         <th class="p-4 font-bold text-sm">Ação</th>
                     </tr>
@@ -211,13 +223,17 @@
                     {% for pedido in pedidos %}
                     <tr>
                         <td class="p-4">{{ pedido.cliente_nome }}</td>
-                        <td class="p-4">{{ pedido.quantidade }}x {{ pedido.produto_nome }}</td>
+                        <td class="p-4">
+                            {{ pedido.quantidade }}x {{ pedido.produto_nome }}
+                            <div class="text-[10px] text-gray-400">R$ {{ "%.2f"|format(pedido.produto_preco) }} cada</div>
+                        </td>
+                        <td class="p-4 font-bold text-primary">R$ {{ "%.2f"|format(pedido.quantidade * pedido.produto_preco) }}</td>
                         <td class="p-4 text-primary">{{ pedido.cliente_telefone }}</td>
                         <td class="p-4 flex items-center gap-2">
+                            <a href="https://wa.me/{{ pedido.cliente_telefone | replace('(', '') | replace(')', '') | replace('-', '') | replace(' ', '') }}" target="_blank" class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold">Chamar no WhatsApp</a>
                             <button onclick="openEncerrarModal('{{ pedido.id }}', '{{ pedido.cliente_nome }}', '{{ pedido.produto_nome }}')" class="bg-gray-200 text-gray-700 px-4 py-1 rounded-full text-sm font-bold hover:bg-gray-300 transition">
                                 Encerrar
                             </button>
-                            <a href="https://wa.me/{{ pedido.cliente_telefone | replace('(', '') | replace(')', '') | replace('-', '') | replace(' ', '') }}" target="_blank" class="bg-green-500 text-white px-4 py-1 rounded-full text-sm font-bold">Chamar no WhatsApp</a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -302,6 +318,22 @@
             sidebar.classList.toggle('-translate-x-full', isOpen);
             sidebar.classList.toggle('translate-x-0', !isOpen);
             overlay.classList.toggle('hidden', isOpen);
+        }
+
+        function updateProductView() {
+            const select = document.getElementById('productSelector');
+            const card = document.getElementById('productDetailCard');
+            const blocks = document.querySelectorAll('.product-info-block');
+
+            // Esconde todos os blocos primeiro
+            blocks.forEach(b => b.classList.add('hidden'));
+
+            if (select.value) {
+                card.classList.remove('hidden');
+                document.getElementById('details-' + select.value).classList.remove('hidden');
+            } else {
+                card.classList.add('hidden');
+            }
         }
 
         function openEditModal(produto) {
